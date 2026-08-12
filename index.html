@@ -40,6 +40,31 @@
       letter-spacing: 1px;
       color: #8c7355;
     }
+    .cart-icon-btn {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      background-color: #3b3123;
+      color: #ffffff;
+      border: none;
+      border-radius: 50px;
+      padding: 0.8rem 1.5rem;
+      font-size: 1rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .cart-badge {
+      background-color: #b05843;
+      color: white;
+      border-radius: 50%;
+      padding: 0.2rem 0.6rem;
+      font-size: 0.8rem;
+      font-weight: bold;
+    }
     nav {
       background-color: #ffffff;
       border-bottom: 1px solid #ece4d8;
@@ -116,6 +141,67 @@
       cursor: pointer;
       width: 100%;
     }
+    .btn-cart:hover {
+      background-color: #3b3123;
+    }
+    .cart-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.4);
+      z-index: 2000;
+      justify-content: center;
+      align-items: center;
+    }
+    .cart-modal-content {
+      background: white;
+      width: 90%;
+      max-width: 500px;
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    }
+    .cart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 0.8rem;
+    }
+    .close-btn {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    .cart-items {
+      margin: 1rem 0;
+      max-height: 250px;
+      overflow-y: auto;
+    }
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.8rem;
+    }
+    .total-price {
+      display: flex;
+      justify-content: space-between;
+      font-size: 1.1rem;
+      font-weight: bold;
+      margin: 1rem 0;
+    }
+    footer {
+      background-color: #f2e9dc;
+      color: #5c4e3e;
+      padding: 2rem 1rem;
+      margin-top: 3rem;
+      text-align: center;
+      border-top: 1px solid #e6dac8;
+    }
   </style>
 </head>
 <body>
@@ -128,6 +214,10 @@
     <div class="brand-logo">DEBLUTE</div>
     <div class="brand-sub">FLOWER DESIGN & HOUSE</div>
   </header>
+
+  <button class="cart-icon-btn" onclick="toggleCart()">
+    🛒 ตะกร้า <span class="cart-badge" id="cart-count">0</span>
+  </button>
 
   <nav>
     <ul>
@@ -150,7 +240,7 @@
         </div>
         <h3>Basket 001</h3>
         <div class="price">3,000 ฿</div>
-        <button class="btn-cart">หยิบใส่ตะกร้า</button>
+        <button class="btn-cart" onclick="addToCart('Basket 001', 3000)">หยิบใส่ตะกร้า</button>
       </div>
 
       <div class="product-card">
@@ -159,7 +249,7 @@
         </div>
         <h3>Basket 002</h3>
         <div class="price">2,890 ฿</div>
-        <button class="btn-cart">หยิบใส่ตะกร้า</button>
+        <button class="btn-cart" onclick="addToCart('Basket 002', 2890)">หยิบใส่ตะกร้า</button>
       </div>
 
       <div class="product-card">
@@ -168,7 +258,7 @@
         </div>
         <h3>Basket 003</h3>
         <div class="price">1,890 ฿</div>
-        <button class="btn-cart">หยิบใส่ตะกร้า</button>
+        <button class="btn-cart" onclick="addToCart('Basket 003', 1890)">หยิบใส่ตะกร้า</button>
       </div>
 
       <div class="product-card">
@@ -177,10 +267,62 @@
         </div>
         <h3>Basket 004</h3>
         <div class="price">2,500 ฿</div>
-        <button class="btn-cart">หยิบใส่ตะกร้า</button>
+        <button class="btn-cart" onclick="addToCart('Basket 004', 2500)">หยิบใส่ตะกร้า</button>
       </div>
     </div>
   </div>
+
+  <!-- Modal ตะกร้าสินค้า -->
+  <div class="cart-modal" id="cartModal">
+    <div class="cart-modal-content">
+      <div class="cart-header">
+        <h3>ตะกร้าสินค้าของคุณ</h3>
+        <button class="close-btn" onclick="toggleCart()">×</button>
+      </div>
+      <div class="cart-items" id="cartItems">
+        <p style="text-align:center; color:#888;">ไม่มีสินค้าในตะกร้า</p>
+      </div>
+      <div class="total-price">
+        <span>ราคารวมทั้งหมด:</span>
+        <span id="totalPrice">0 ฿</span>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2026 DEBLUTE FLOWER DESIGN & HOUSE. All rights reserved.</p>
+  </footer>
+
+  <script>
+    let cart = [];
+
+    function addToCart(name, price) {
+      cart.push({ name, price });
+      updateCartUI();
+    }
+
+    function toggleCart() {
+      const modal = document.getElementById('cartModal');
+      modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
+    }
+
+    function updateCartUI() {
+      document.getElementById('cart-count').innerText = cart.length;
+      const cartItemsDiv = document.getElementById('cartItems');
+      let total = 0;
+
+      if (cart.length === 0) {
+        cartItemsDiv.innerHTML = '<p style="text-align:center; color:#888;">ไม่มีสินค้าในตะกร้า</p>';
+      } else {
+        cartItemsDiv.innerHTML = cart.map(item => {
+          total += item.price;
+          return `<div class="cart-item"><span>${item.name}</span><span>${item.price.toLocaleString()} ฿</span></div>`;
+        }).join('');
+      }
+
+      document.getElementById('totalPrice').innerText = total.toLocaleString() + ' ฿';
+    }
+  </script>
 
 </body>
 </html>
